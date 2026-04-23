@@ -273,7 +273,7 @@
     const CURRENCY_SYMBOLS={USD:'$',EUR:'€',GBP:'£',INR:'₹',JPY:'¥'};
     const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
         ? 'http://localhost:8080/api' 
-        : 'https://expenseiq-backend.onrender.com/api'; // Replace with your actual Render URL after deployment
+        : 'https://expenseiq-za62.onrender.com/api'; // Actual Render URL
     let state={transactions:[],summary:{},categories:[],budgets:{},recurring:[],currency:'USD',theme:'dark',currentType:'expense',calendarDate:new Date()};
 
     async function apiFetch(endpoint, options = {}) {
