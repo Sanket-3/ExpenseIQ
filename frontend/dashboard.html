@@ -284,6 +284,13 @@
             ...options.headers
         };
         const response = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+        
+        // Handle non-JSON responses (like Render's "Almost live" page)
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Server is currently starting up. Please wait a moment...');
+        }
+
         if (!response.ok) {
             const error = await response.json().catch(() => ({ message: 'API request failed' }));
             throw new Error(error.message || 'API request failed');
