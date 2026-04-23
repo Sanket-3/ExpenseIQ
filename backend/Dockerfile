@@ -12,4 +12,4 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 RUN mkdir -p /app/data && chmod 777 /app/data
 EXPOSE 8080
-ENTRYPOINT ["java", "-Xmx384m", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xmx384m", "-Djava.net.preferIPv4Stack=true", "-jar", "app.jar"]
