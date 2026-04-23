@@ -1,0 +1,25 @@
+# Maven
+backend/target/
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+backend/.idea/
+backend/*.iml
+backend/jdk17/
+backend/*.zip
+backend/*.txt
+
+# Database
+backend/data/
+*.db
+*.h2.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.DS_Store
+
+# Frontend
+frontend/node_modules/
+frontend/.env

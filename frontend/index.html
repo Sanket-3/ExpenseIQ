@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExpenseIQ — Smart Expense Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #06060e;
+            --bg2: #0c0c1d;
+            --card: rgba(15, 15, 35, 0.7);
+            --border: rgba(255,255,255,0.06);
+            --text: #f0f0f8;
+            --text2: #8888a8;
+            --text3: #55556a;
+            --accent: #7c3aed;
+            --accent2: #a78bfa;
+            --cyan: #06b6d4;
+            --green: #10b981;
+            --pink: #ec4899;
+            --orange: #f59e0b;
+            --red: #ef4444;
+            --font: 'Inter', sans-serif;
+            --radius: 16px;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--font); background: var(--bg); color: var(--text); overflow-x: hidden; }
+
+        /* ===== ANIMATED BACKGROUND ===== */
+        .bg-effects {
+            position: fixed; inset: 0; z-index: -1; overflow: hidden;
+        }
+        .bg-effects .orb {
+            position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15;
+            animation: orbFloat 20s ease-in-out infinite;
+        }
+        .bg-effects .orb:nth-child(1) { width: 600px; height: 600px; background: var(--accent); top: -10%; left: -10%; animation-delay: 0s; }
+        .bg-effects .orb:nth-child(2) { width: 500px; height: 500px; background: var(--cyan); bottom: -10%; right: -10%; animation-delay: -7s; }
+        .bg-effects .orb:nth-child(3) { width: 400px; height: 400px; background: var(--pink); top: 50%; left: 50%; animation-delay: -14s; }
+        .bg-effects .grid-bg {
+            position: absolute; inset: 0;
+            background-image: linear-gradient(rgba(124,58,237,0.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(124,58,237,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(80px, -60px) scale(1.1); }
+            50% { transform: translate(-40px, 80px) scale(0.9); }
+            75% { transform: translate(60px, 40px) scale(1.05); }
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            padding: 16px 40px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(6,6,14,0.8); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        .navbar.scrolled { padding: 12px 40px; box-shadow: 0 4px 30px rgba(0,0,0,0.3); }
+        .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .nav-logo .icon {
+            width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), var(--cyan));
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            font-size: 18px; color: #fff; box-shadow: 0 4px 20px rgba(124,58,237,0.3);
+        }
+        .nav-logo h1 { font-size: 22px; font-weight: 800;
+            background: linear-gradient(135deg, var(--accent2), var(--cyan));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .nav-links { display: flex; gap: 32px; align-items: center; }
+        .nav-links a { color: var(--text2); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.3s; }
+        .nav-links a:hover { color: var(--text); }
+        .nav-actions { display: flex; gap: 12px; align-items: center; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; border-radius: 10px;
+            font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; text-decoration: none;
+            font-family: var(--font); border: none; }
+        .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+        .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.03); }
+        .btn-primary { background: linear-gradient(135deg, var(--accent), #6d28d9); color: #fff;
+            box-shadow: 0 4px 20px rgba(124,58,237,0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(124,58,237,0.4); }
+        .btn-lg { padding: 14px 32px; font-size: 16px; border-radius: 12px; }
+        .btn-outline { background: transparent; border: 2px solid var(--accent); color: var(--accent2); }
+        .btn-outline:hover { background: rgba(124,58,237,0.1); }
+
+        /* ===== HERO ===== */
+        .hero {
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            padding: 120px 40px 80px; position: relative;
+        }
+        .hero-inner { max-width: 1200px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px 6px 8px;
+            background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2);
+            border-radius: 50px; font-size: 13px; color: var(--accent2); font-weight: 500;
+            margin-bottom: 24px; animation: fadeUp 0.8s ease;
+        }
+        .hero-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+            animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .hero h2 {
+            font-size: 64px; font-weight: 900; line-height: 1.05; margin-bottom: 20px;
+            animation: fadeUp 0.8s ease 0.1s both;
+        }
+        .hero h2 .gradient {
+            background: linear-gradient(135deg, var(--accent2), var(--cyan), var(--pink));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-size: 200% 200%; animation: gradientShift 4s ease infinite;
+        }
+        @keyframes gradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .hero p { font-size: 18px; color: var(--text2); line-height: 1.7; margin-bottom: 36px;
+            max-width: 500px; animation: fadeUp 0.8s ease 0.2s both; }
+        .hero-buttons { display: flex; gap: 14px; animation: fadeUp 0.8s ease 0.3s both; flex-wrap: wrap; }
+        .hero-stats { display: flex; gap: 40px; margin-top: 48px; animation: fadeUp 0.8s ease 0.4s both; }
+        .hero-stat-value { font-size: 32px; font-weight: 800; color: var(--text); }
+        .hero-stat-label { font-size: 13px; color: var(--text3); margin-top: 4px; }
+
+        /* Hero Visual */
+        .hero-visual { position: relative; animation: fadeUp 0.8s ease 0.3s both; }
+        .hero-mockup {
+            background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+            padding: 24px; backdrop-filter: blur(20px); box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            position: relative; overflow: hidden;
+        }
+        .hero-mockup::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--cyan), var(--pink));
+        }
+        .mockup-header { display: flex; gap: 8px; margin-bottom: 20px; }
+        .mockup-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .mockup-dot:nth-child(1) { background: var(--red); }
+        .mockup-dot:nth-child(2) { background: var(--orange); }
+        .mockup-dot:nth-child(3) { background: var(--green); }
+        .mockup-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+        .m-stat {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+            border-radius: 12px; padding: 16px; text-align: center;
+        }
+        .m-stat-icon { font-size: 22px; margin-bottom: 8px; }
+        .m-stat-val { font-size: 20px; font-weight: 700; }
+        .m-stat-label { font-size: 11px; color: var(--text3); margin-top: 4px; }
+        .mockup-bars { display: flex; flex-direction: column; gap: 10px; }
+        .m-bar { display: flex; align-items: center; gap: 12px; }
+        .m-bar-label { font-size: 12px; color: var(--text2); width: 70px; }
+        .m-bar-track { flex: 1; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; }
+        .m-bar-fill { height: 100%; border-radius: 4px; animation: barGrow 1.5s ease 0.8s both; }
+        @keyframes barGrow { from { width: 0 !important; } }
+        .m-bar-val { font-size: 12px; font-weight: 600; width: 50px; text-align: right; }
+        .floating-card {
+            position: absolute; background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 14px 18px; backdrop-filter: blur(20px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: float 6s ease-in-out infinite;
+        }
+        .floating-card.card-1 { top: -20px; right: -30px; animation-delay: 0s; }
+        .floating-card.card-2 { bottom: -20px; left: -30px; animation-delay: -3s; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+        .fc-row { display: flex; align-items: center; gap: 10px; }
+        .fc-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center;
+            justify-content: center; font-size: 16px; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== FEATURES ===== */
+        .section { padding: 100px 40px; max-width: 1200px; margin: 0 auto; }
+        .section-label {
+            display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px;
+            background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.15);
+            border-radius: 50px; font-size: 12px; font-weight: 600; color: var(--accent2);
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;
+        }
+        .section-title { font-size: 42px; font-weight: 800; margin-bottom: 16px; line-height: 1.15; }
+        .section-subtitle { font-size: 17px; color: var(--text2); max-width: 600px; line-height: 1.6; margin-bottom: 48px; }
+
+        .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .feature-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 32px; transition: all 0.4s; position: relative; overflow: hidden;
+        }
+        .feature-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .feature-card:hover { transform: translateY(-6px); border-color: rgba(124,58,237,0.2);
+            box-shadow: 0 20px 50px rgba(124,58,237,0.1); }
+        .feature-card:hover::before { opacity: 1; }
+        .feature-icon {
+            width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center;
+            justify-content: center; font-size: 24px; margin-bottom: 20px;
+        }
+        .feature-card h4 { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+        .feature-card p { font-size: 14px; color: var(--text2); line-height: 1.6; }
+
+        /* ===== HOW IT WORKS ===== */
+        .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; position: relative; }
+        .steps::before {
+            content: ''; position: absolute; top: 40px; left: 10%; right: 10%;
+            height: 2px; background: linear-gradient(90deg, var(--accent), var(--cyan));
+            opacity: 0.2;
+        }
+        .step { text-align: center; position: relative; }
+        .step-num {
+            width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; font-size: 20px; font-weight: 800; margin: 0 auto 20px;
+            background: linear-gradient(135deg, var(--accent), #6d28d9);
+            color: #fff; box-shadow: 0 4px 20px rgba(124,58,237,0.3);
+            position: relative; z-index: 1;
+        }
+        .step h4 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+        .step p { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+        /* ===== TESTIMONIALS ===== */
+        .testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .testimonial-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 28px; transition: all 0.3s;
+        }
+        .testimonial-card:hover { border-color: rgba(124,58,237,0.2); }
+        .tc-stars { color: var(--orange); font-size: 14px; margin-bottom: 14px; }
+        .tc-text { font-size: 14px; color: var(--text2); line-height: 1.7; margin-bottom: 18px; font-style: italic; }
+        .tc-author { display: flex; align-items: center; gap: 12px; }
+        .tc-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 16px; color: #fff;
+        }
+        .tc-name { font-size: 14px; font-weight: 600; }
+        .tc-role { font-size: 12px; color: var(--text3); }
+
+        /* ===== CTA ===== */
+        .cta-section {
+            background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(6,182,212,0.1));
+            border: 1px solid rgba(124,58,237,0.15); border-radius: 24px;
+            padding: 64px; text-align: center; margin: 0 40px 80px;
+            max-width: 1200px; margin-left: auto; margin-right: auto;
+            position: relative; overflow: hidden;
+        }
+        .cta-section::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 50%);
+            animation: orbFloat 15s ease-in-out infinite;
+        }
+        .cta-section h2 { font-size: 38px; font-weight: 800; margin-bottom: 16px; position: relative; }
+        .cta-section p { font-size: 17px; color: var(--text2); margin-bottom: 32px; position: relative; }
+        .cta-buttons { display: flex; gap: 14px; justify-content: center; position: relative; flex-wrap: wrap; }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            border-top: 1px solid var(--border); padding: 48px 40px 32px;
+            max-width: 1200px; margin: 0 auto;
+        }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+        .footer-brand p { font-size: 14px; color: var(--text2); line-height: 1.6; margin-top: 12px; max-width: 280px; }
+        .footer h5 { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--text); }
+        .footer a { display: block; font-size: 13px; color: var(--text2); text-decoration: none; margin-bottom: 10px; transition: all 0.3s; }
+        .footer a:hover { color: var(--accent2); }
+        .footer-bottom { border-top: 1px solid var(--border); padding-top: 24px; display: flex; justify-content: space-between; align-items: center; }
+        .footer-bottom p { font-size: 13px; color: var(--text3); }
+        .social-links { display: flex; gap: 12px; }
+        .social-links a { width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--text2); }
+        .social-links a:hover { border-color: var(--accent); color: var(--accent2); background: rgba(124,58,237,0.1); }
+
+        /* Scroll reveal */
+        .reveal { opacity: 0; transform: translateY(40px); transition: all 0.8s cubic-bezier(0.4,0,0.2,1); }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        /* ===== MOBILE MENU ===== */
+        .mobile-toggle { display: none; background: none; border: none; color: var(--text); font-size: 24px; cursor: pointer; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .hero-inner { grid-template-columns: 1fr; text-align: center; }
+            .hero p { margin-left: auto; margin-right: auto; }
+            .hero-buttons, .hero-stats { justify-content: center; }
+            .hero-visual { max-width: 500px; margin: 0 auto; }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .steps { grid-template-columns: repeat(2, 1fr); }
+            .steps::before { display: none; }
+            .testimonials-grid { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .navbar { padding: 12px 20px; }
+            .nav-links { display: none; }
+            .mobile-toggle { display: block; }
+            .hero { padding: 100px 20px 60px; }
+            .hero h2 { font-size: 38px; }
+            .section { padding: 60px 20px; }
+            .section-title { font-size: 30px; }
+            .features-grid, .steps { grid-template-columns: 1fr; }
+            .cta-section { padding: 40px 24px; margin: 0 20px 60px; }
+            .floating-card { display: none; }
+            .hero-stats { gap: 24px; }
+            .footer-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-effects">
+    <div class="orb"></div><div class="orb"></div><div class="orb"></div>
+    <div class="grid-bg"></div>
+</div>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar" id="navbar">
+    <a href="#" class="nav-logo">
+        <div class="icon"><i class="ri-wallet-3-fill"></i></div>
+        <h1>ExpenseIQ</h1>
+    </a>
+    <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#testimonials">Testimonials</a>
+    </div>
+    <div class="nav-actions">
+        <a href="auth.html" class="btn btn-ghost">Log In</a>
+        <a href="auth.html?mode=register" class="btn btn-primary">Get Started Free</a>
+        <button class="mobile-toggle" id="mobileToggle"><i class="ri-menu-line"></i></button>
+    </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+    <div class="hero-inner">
+        <div class="hero-content">
+            <div class="hero-badge"><div class="dot"></div> #1 Smart Expense Tracker in 2025</div>
+            <h2>Master Your<br><span class="gradient">Money, Master<br>Your Life.</span></h2>
+            <p>Track expenses, set budgets, get AI-powered insights, and take control of your finances — all in one beautiful, intelligent platform.</p>
+            <div class="hero-buttons">
+                <a href="auth.html?mode=register" class="btn btn-primary btn-lg">
+                    <i class="ri-rocket-line"></i> Start Free — No Card Needed
+                </a>
+                <a href="#features" class="btn btn-outline btn-lg">
+                    <i class="ri-play-circle-line"></i> See How It Works
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div>
+                    <div class="hero-stat-value">50K+</div>
+                    <div class="hero-stat-label">Active Users</div>
+                </div>
+                <div>
+                    <div class="hero-stat-value">₹2.4B</div>
+                    <div class="hero-stat-label">Tracked</div>
+                </div>
+                <div>
+                    <div class="hero-stat-value">4.9★</div>
+                    <div class="hero-stat-label">User Rating</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hero Mockup -->
+        <div class="hero-visual">
+            <div class="hero-mockup">
+                <div class="mockup-header">
+                    <div class="mockup-dot"></div><div class="mockup-dot"></div><div class="mockup-dot"></div>
+                </div>
+                <div class="mockup-stats">
+                    <div class="m-stat">
+                        <div class="m-stat-icon" style="color:var(--green)">
+                            <i class="ri-arrow-down-circle-fill"></i>
+                        </div>
+                        <div class="m-stat-val" style="color:var(--green)">₹6,450</div>
+                        <div class="m-stat-label">Income</div>
+                    </div>
+                    <div class="m-stat">
+                        <div class="m-stat-icon" style="color:var(--red)">
+                            <i class="ri-arrow-up-circle-fill"></i>
+                        </div>
+                        <div class="m-stat-val" style="color:var(--red)">₹2,180</div>
+                        <div class="m-stat-label">Expenses</div>
+                    </div>
+                    <div class="m-stat">
+                        <div class="m-stat-icon" style="color:var(--accent2)">
+                            <i class="ri-wallet-3-fill"></i>
+                        </div>
+                        <div class="m-stat-val">₹4,270</div>
+                        <div class="m-stat-label">Balance</div>
+                    </div>
+                </div>
+                <div class="mockup-bars">
+                    <div class="m-bar">
+                        <div class="m-bar-label">Food</div>
+                        <div class="m-bar-track"><div class="m-bar-fill" style="width:72%;background:var(--orange)"></div></div>
+                        <div class="m-bar-val">₹580</div>
+                    </div>
+                    <div class="m-bar">
+                        <div class="m-bar-label">Transport</div>
+                        <div class="m-bar-track"><div class="m-bar-fill" style="width:45%;background:var(--cyan)"></div></div>
+                        <div class="m-bar-val">₹320</div>
+                    </div>
+                    <div class="m-bar">
+                        <div class="m-bar-label">Shopping</div>
+                        <div class="m-bar-track"><div class="m-bar-fill" style="width:88%;background:var(--pink)"></div></div>
+                        <div class="m-bar-val">₹750</div>
+                    </div>
+                    <div class="m-bar">
+                        <div class="m-bar-label">Bills</div>
+                        <div class="m-bar-track"><div class="m-bar-fill" style="width:35%;background:var(--accent)"></div></div>
+                        <div class="m-bar-val">₹230</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Floating cards -->
+            <div class="floating-card card-1">
+                <div class="fc-row">
+                    <div class="fc-icon" style="background:rgba(16,185,129,0.15);color:var(--green)"><i class="ri-arrow-down-line"></i></div>
+                    <div>
+                        <div style="font-size:13px;font-weight:600;">+₹5,500.00</div>
+                        <div style="font-size:11px;color:var(--text3)">Salary Received</div>
+                    </div>
+                </div>
+            </div>
+            <div class="floating-card card-2">
+                <div class="fc-row">
+                    <div class="fc-icon" style="background:rgba(124,58,237,0.15);color:var(--accent2)"><i class="ri-pie-chart-2-fill"></i></div>
+                    <div>
+                        <div style="font-size:13px;font-weight:600;">Budget: 66% used</div>
+                        <div style="font-size:11px;color:var(--text3)">On track this month</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section class="section reveal" id="features">
+    <div class="section-label"><i class="ri-sparkle-line"></i> Features</div>
+    <div class="section-title">Everything You Need to<br>Manage Your Money</div>
+    <div class="section-subtitle">Powerful features designed to give you complete control over your finances.</div>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon" style="background:rgba(124,58,237,0.12);color:var(--accent2)"><i class="ri-dashboard-3-fill"></i></div>
+            <h4>Smart Dashboard</h4>
+            <p>Real-time overview with interactive charts, spending trends, and financial health indicators.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" style="background:rgba(6,182,212,0.12);color:var(--cyan)"><i class="ri-pie-chart-2-fill"></i></div>
+            <h4>Budget Tracking</h4>
+            <p>Set monthly budgets per category with visual progress bars and overspend alerts.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" style="background:rgba(236,72,153,0.12);color:var(--pink)"><i class="ri-lightbulb-fill"></i></div>
+            <h4>AI Insights</h4>
+            <p>Get intelligent tips about spending patterns, savings rates, and financial optimization.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" style="background:rgba(16,185,129,0.12);color:var(--green)"><i class="ri-repeat-fill"></i></div>
+            <h4>Recurring Tracker</h4>
+            <p>Auto-track subscriptions, bills, and recurring payments. Never miss a due date.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" style="background:rgba(245,158,11,0.12);color:var(--orange)"><i class="ri-calendar-2-fill"></i></div>
+            <h4>Spending Calendar</h4>
+            <p>Heatmap visualization showing your daily spending patterns across the month.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" style="background:rgba(239,68,68,0.12);color:var(--red)"><i class="ri-shield-check-fill"></i></div>
+            <h4>Secure & Private</h4>
+            <p>OTP-verified authentication, encrypted data, and complete privacy protection.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section class="section reveal" id="how-it-works">
+    <div style="text-align:center">
+        <div class="section-label"><i class="ri-route-line"></i> How It Works</div>
+        <div class="section-title">Get Started in 4 Easy Steps</div>
+        <div class="section-subtitle" style="margin-left:auto;margin-right:auto">From sign-up to financial freedom in minutes.</div>
+    </div>
+    <div class="steps">
+        <div class="step">
+            <div class="step-num">1</div>
+            <h4>Create Account</h4>
+            <p>Sign up with email or phone number. Quick & secure.</p>
+        </div>
+        <div class="step">
+            <div class="step-num">2</div>
+            <h4>Verify OTP</h4>
+            <p>Verify your identity with a one-time password for security.</p>
+        </div>
+        <div class="step">
+            <div class="step-num">3</div>
+            <h4>Add Transactions</h4>
+            <p>Log income & expenses. Set budgets, add recurring bills.</p>
+        </div>
+        <div class="step">
+            <div class="step-num">4</div>
+            <h4>Get Insights</h4>
+            <p>AI analyzes your data and gives you smart money tips.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== TESTIMONIALS ===== -->
+<section class="section reveal" id="testimonials">
+    <div style="text-align:center">
+        <div class="section-label"><i class="ri-chat-smile-3-line"></i> Testimonials</div>
+        <div class="section-title">Loved by 50,000+ Users</div>
+        <div class="section-subtitle" style="margin-left:auto;margin-right:auto">See what our community says about ExpenseIQ.</div>
+    </div>
+    <div class="testimonials-grid">
+        <div class="testimonial-card">
+            <div class="tc-stars">★★★★★</div>
+            <div class="tc-text">"ExpenseIQ completely changed how I manage money. The insights feature alone saved me $300/month by identifying subscriptions I forgot about."</div>
+            <div class="tc-author">
+                <div class="tc-avatar" style="background:linear-gradient(135deg,var(--accent),var(--cyan))">S</div>
+                <div><div class="tc-name">Abhishek Agasibagal</div><div class="tc-role">Product Designer</div></div>
+            </div>
+        </div>
+        <div class="testimonial-card">
+            <div class="tc-stars">★★★★★</div>
+            <div class="tc-text">"The calendar heatmap is genius! I can visually see my spending spikes and plan accordingly. Best finance app I've used."</div>
+            <div class="tc-author">
+                <div class="tc-avatar" style="background:linear-gradient(135deg,var(--green),var(--cyan))">M</div>
+                <div><div class="tc-name">Nishant Mane</div><div class="tc-role">Software Engineer</div></div>
+            </div>
+        </div>
+        <div class="testimonial-card">
+            <div class="tc-stars">★★★★★</div>
+            <div class="tc-text">"Finally, an expense tracker that's beautiful AND functional. The budget alerts helped me stay within limits for the first time ever."</div>
+            <div class="tc-author">
+                <div class="tc-avatar" style="background:linear-gradient(135deg,var(--pink),var(--orange))">A</div>
+                <div><div class="tc-name">Ajinkya Mane</div><div class="tc-role">Freelance Writer</div></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<div class="cta-section reveal">
+    <h2>Ready to Take Control<br>of Your Finances?</h2>
+    <p>Join 50,000+ users who are saving more and spending smarter with ExpenseIQ.</p>
+    <div class="cta-buttons">
+        <a href="auth.html?mode=register" class="btn btn-primary btn-lg"><i class="ri-rocket-line"></i> Get Started Free</a>
+        <a href="auth.html" class="btn btn-ghost btn-lg"><i class="ri-login-box-line"></i> Log In</a>
+    </div>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+    <div class="footer-grid">
+        <div class="footer-brand">
+            <a href="#" class="nav-logo" style="margin-bottom:4px">
+                <div class="icon"><i class="ri-wallet-3-fill"></i></div>
+                <h1>ExpenseIQ</h1>
+            </a>
+            <p>Smart money management for everyone. Track, budget, and grow your wealth with AI-powered insights.</p>
+        </div>
+        <div>
+            <h5>Product</h5>
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#">Pricing</a>
+            <a href="#">Changelog</a>
+        </div>
+        <div>
+            <h5>Company</h5>
+            <a href="#">About</a>
+            <a href="#">Blog</a>
+            <a href="#">Careers</a>
+            <a href="#">Contact</a>
+        </div>
+        <div>
+            <h5>Legal</h5>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Cookie Policy</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2025 ExpenseIQ. All rights reserved.</p>
+        <div class="social-links">
+            <a href="#"><i class="ri-twitter-x-line"></i></a>
+            <a href="#"><i class="ri-github-fill"></i></a>
+            <a href="#"><i class="ri-linkedin-fill"></i></a>
+            <a href="https://www.instagram.com/patilsanket_03?igsh=MW1mNjhzMng0M3BtNg=="><i class="ri-instagram-line"></i></a>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Dynamic API URL
+    const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? 'http://localhost:8080/api' 
+        : 'https://expenseiq-backend.onrender.com/api'; // Replace with your actual Render URL after deployment
+
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+        document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+    });
+
+    // Scroll reveal
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Auto-redirect if already logged in
+    if (localStorage.getItem('expenseIQ_token')) {
+        // User is logged in — show subtle welcome or redirect
+        const navActions = document.querySelector('.nav-actions');
+        const userName = localStorage.getItem('expenseIQ_userName') || 'User';
+        navActions.innerHTML = `
+            <a href="dashboard.html" class="btn btn-primary"><i class="ri-dashboard-3-line"></i> Go to Dashboard</a>
+        `;
+    }
+</script>
+</body>
+</html>

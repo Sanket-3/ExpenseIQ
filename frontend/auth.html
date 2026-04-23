@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExpenseIQ — Login / Register</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #06060e; --card: rgba(15,15,35,0.8); --border: rgba(255,255,255,0.06);
+            --text: #f0f0f8; --text2: #8888a8; --text3: #55556a;
+            --accent: #7c3aed; --accent2: #a78bfa; --cyan: #06b6d4;
+            --green: #10b981; --red: #ef4444; --font: 'Inter', sans-serif;
+        }
+        body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh;
+            display: flex; align-items: center; justify-content: center; overflow: hidden; }
+
+        /* Background */
+        .bg-effects { position: fixed; inset: 0; z-index: -1; }
+        .bg-effects .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.12;
+            animation: orbFloat 20s ease-in-out infinite; }
+        .bg-effects .orb:nth-child(1) { width: 500px; height: 500px; background: var(--accent); top: -20%; left: -10%; }
+        .bg-effects .orb:nth-child(2) { width: 400px; height: 400px; background: var(--cyan); bottom: -20%; right: -10%; animation-delay: -10s; }
+        @keyframes orbFloat { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(50px,-50px); } }
+
+        .auth-container {
+            width: 100%; max-width: 460px; padding: 20px; animation: slideUp 0.6s ease;
+        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        .auth-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+            padding: 40px; backdrop-filter: blur(24px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 80px rgba(124,58,237,0.06);
+        }
+
+        .auth-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; justify-content: center; }
+        .auth-logo .icon {
+            width: 44px; height: 44px; background: linear-gradient(135deg, var(--accent), var(--cyan));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 20px; color: #fff; box-shadow: 0 4px 20px rgba(124,58,237,0.3);
+        }
+        .auth-logo h1 { font-size: 24px; font-weight: 800;
+            background: linear-gradient(135deg, var(--accent2), var(--cyan));
+            background-clip: text;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .auth-title { text-align: center; margin-bottom: 8px; font-size: 22px; font-weight: 700; }
+        .auth-subtitle { text-align: center; color: var(--text2); font-size: 14px; margin-bottom: 28px; }
+
+        /* Tabs */
+        .auth-tabs { display: flex; gap: 4px; background: rgba(255,255,255,0.03); border-radius: 12px;
+            padding: 4px; margin-bottom: 28px; }
+        .auth-tab {
+            flex: 1; padding: 10px; text-align: center; border-radius: 10px; cursor: pointer;
+            font-size: 14px; font-weight: 600; transition: all 0.3s; color: var(--text2);
+            background: transparent; border: none; font-family: var(--font);
+        }
+        .auth-tab.active { background: var(--accent); color: #fff; box-shadow: 0 4px 15px rgba(124,58,237,0.3); }
+
+        /* Forms */
+        .auth-form { display: none; }
+        .auth-form.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 6px; }
+
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .input-wrapper i { position: absolute; left: 14px; color: var(--text3); font-size: 18px; transition: color 0.3s; }
+        .input-wrapper input {
+            width: 100%; padding: 12px 14px 12px 44px; background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border); border-radius: 12px; color: var(--text);
+            font-size: 14px; font-family: var(--font); transition: all 0.3s; outline: none;
+        }
+        .input-wrapper input:focus { border-color: rgba(124,58,237,0.4); box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
+        .input-wrapper input:focus + i, .input-wrapper input:focus ~ i { color: var(--accent2); }
+        .input-wrapper input::placeholder { color: var(--text3); }
+
+        .input-wrapper .toggle-pass {
+            position: absolute; right: 14px; left: auto; cursor: pointer;
+            color: var(--text3); font-size: 18px; background: none; border: none;
+        }
+        .input-wrapper .toggle-pass:hover { color: var(--text2); }
+
+        .btn-full {
+            width: 100%; padding: 13px; border-radius: 12px; font-size: 15px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s; font-family: var(--font); border: none;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--accent), #6d28d9); color: #fff;
+            box-shadow: 0 4px 20px rgba(124,58,237,0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(124,58,237,0.4); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .auth-footer { text-align: center; margin-top: 20px; font-size: 13px; color: var(--text3); }
+        .auth-footer a { color: var(--accent2); text-decoration: none; font-weight: 500; }
+        .auth-footer a:hover { text-decoration: underline; }
+
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text2); text-decoration: none; font-size: 13px; margin-bottom: 20px; transition: all 0.3s; }
+        .back-link:hover { color: var(--text); }
+
+        /* OTP Section */
+        .otp-section { display: none; text-align: center; animation: fadeIn 0.3s ease; }
+        .otp-section.active { display: block; }
+        .otp-inputs { display: flex; gap: 10px; justify-content: center; margin: 24px 0; }
+        .otp-inputs input {
+            width: 50px; height: 56px; text-align: center; font-size: 22px; font-weight: 700;
+            background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px;
+            color: var(--text); font-family: var(--font); outline: none; transition: all 0.3s;
+        }
+        .otp-inputs input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
+        .otp-info { font-size: 14px; color: var(--text2); margin-bottom: 8px; }
+        .otp-info strong { color: var(--text); }
+        .resend-timer { font-size: 13px; color: var(--text3); margin-top: 16px; }
+        .resend-timer a { color: var(--accent2); cursor: pointer; text-decoration: none; }
+        .resend-timer a.disabled { color: var(--text3); pointer-events: none; }
+
+        /* Toast */
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+        .toast { padding: 14px 20px; background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 10px;
+            font-size: 14px; backdrop-filter: blur(20px); animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s; }
+        .toast.success { border-left: 3px solid var(--green); }
+        .toast.error { border-left: 3px solid var(--red); }
+        @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+
+        .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.2); border-top-color: #fff;
+            border-radius: 50%; animation: spin 0.6s linear infinite; display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .strength-bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.05); margin-top: 8px; overflow: hidden; }
+        .strength-fill { height: 100%; border-radius: 2px; transition: all 0.3s; }
+        .strength-text { font-size: 11px; margin-top: 4px; }
+
+        @media (max-width: 480px) {
+            .auth-card { padding: 28px 22px; }
+            .otp-inputs input { width: 44px; height: 50px; font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-effects"><div class="orb"></div><div class="orb"></div></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="auth-container">
+    <div id="authSection">
+        <a href="index.html" class="back-link"><i class="ri-arrow-left-line"></i> Back to Home</a>
+
+        <div class="auth-card">
+            <div class="auth-logo">
+                <div class="icon"><i class="ri-wallet-3-fill"></i></div>
+                <h1>ExpenseIQ</h1>
+            </div>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="loginTab" onclick="switchTab('login')">Log In</button>
+                <button class="auth-tab" id="registerTab" onclick="switchTab('register')">Register</button>
+            </div>
+
+            <!-- ===== LOGIN FORM ===== -->
+            <form class="auth-form active" id="loginForm" onsubmit="handleLogin(event)">
+                <div class="auth-title">Welcome Back!</div>
+                <div class="auth-subtitle">Log in using your phone number</div>
+
+                <div class="form-group" id="loginEmailGroup">
+                    <label>Email Address</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="loginEmail" placeholder="your@email.com" autocomplete="email">
+                        <i class="ri-mail-line"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password">
+                        <i class="ri-lock-line"></i>
+                        <button type="button" class="toggle-pass" onclick="togglePassword('loginPassword', this)"><i class="ri-eye-off-line"></i></button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-full btn-primary" id="loginBtn">
+                    <span>Log In</span><div class="spinner" id="loginSpinner"></div>
+                </button>
+
+                <div class="auth-footer">
+                    Don't have an account? <a href="#" onclick="switchTab('register')">Register</a>
+                </div>
+            </form>
+
+            <!-- ===== REGISTER FORM ===== -->
+            <form class="auth-form" id="registerForm" onsubmit="handleRegister(event)">
+                <div class="auth-title">Create Account</div>
+                <div class="auth-subtitle">Start managing your finances today</div>
+
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="regName" placeholder="Sanket Patil" autocomplete="name" required>
+                        <i class="ri-user-line"></i>
+                    </div>
+                </div>
+
+                <div class="form-group" id="regEmailGroup">
+                    <label>Email Address</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="regEmail" placeholder="your@email.com" autocomplete="email">
+                        <i class="ri-mail-line"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="regPassword" placeholder="Create a strong password" oninput="checkStrength(this.value)" autocomplete="new-password">
+                        <i class="ri-lock-line"></i>
+                        <button type="button" class="toggle-pass" onclick="togglePassword('regPassword', this)"><i class="ri-eye-off-line"></i></button>
+                    </div>
+                    <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+                    <div class="strength-text" id="strengthText"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="regConfirm" placeholder="Confirm your password" autocomplete="new-password">
+                        <i class="ri-lock-check-line"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-full btn-primary" id="registerBtn">
+                    <span>Create Account</span><div class="spinner" id="registerSpinner"></div>
+                </button>
+
+                <div class="auth-footer">
+                    Already have an account? <a href="#" onclick="switchTab('login')">Log In</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- OTP VERIFICATION -->
+    <div id="otpSection" class="otp-section">
+        <a href="#" class="back-link" onclick="backToAuth()"><i class="ri-arrow-left-line"></i> Back</a>
+        <div class="auth-card">
+            <div class="auth-logo"><div class="icon"><i class="ri-shield-check-fill"></i></div><h1>Verify OTP</h1></div>
+            <div style="text-align:center">
+                <div style="width:70px;height:70px;border-radius:50%;background:rgba(124,58,237,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px;color:var(--accent2)">
+                    <i class="ri-message-3-line"></i>
+                </div>
+                <div class="otp-info">We've sent a 6-digit verification code to<br><strong id="otpDestination">your@email.com</strong></div>
+            </div>
+
+            <div class="otp-inputs" id="otpInputs">
+                <input type="text" maxlength="1" inputmode="numeric" autofocus><input type="text" maxlength="1" inputmode="numeric"><input type="text" maxlength="1" inputmode="numeric">
+                <input type="text" maxlength="1" inputmode="numeric"><input type="text" maxlength="1" inputmode="numeric"><input type="text" maxlength="1" inputmode="numeric">
+            </div>
+
+            <button class="btn-full btn-primary" onclick="verifyOTP()" id="verifyBtn">
+                <span>Verify & Continue</span><div class="spinner" id="verifySpinner"></div>
+            </button>
+            <div class="resend-timer">
+                Didn't receive the SMS? <a id="resendLink" class="disabled" onclick="resendOTP()">Resend</a>
+                <span id="timerText"> (30s)</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? 'http://localhost:8080/api/auth' 
+        : 'https://expenseiq-backend.onrender.com/api/auth'; // Replace with your actual Render URL after deployment
+    let pendingUserData = {};
+    let resendTimer = null;
+
+    (function() {
+        const token = localStorage.getItem('expenseIQ_token');
+        if (token) window.location.href = 'dashboard.html';
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('mode') === 'register') switchTab('register');
+    })();
+
+    function switchTab(tab) {
+        document.getElementById('loginTab').classList.toggle('active', tab === 'login');
+        document.getElementById('registerTab').classList.toggle('active', tab === 'register');
+        document.getElementById('loginForm').classList.toggle('active', tab === 'login');
+        document.getElementById('registerForm').classList.toggle('active', tab === 'register');
+    }
+
+    function togglePassword(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') { input.type = 'text'; icon.className = 'ri-eye-line'; }
+        else { input.type = 'password'; icon.className = 'ri-eye-off-line'; }
+    }
+
+    function checkStrength(password) {
+        const fill = document.getElementById('strengthFill'), text = document.getElementById('strengthText');
+        let score = 0;
+        if (password.length >= 8) score++;
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+        if (/\d/.test(password)) score++;
+        if (/[^a-zA-Z0-9]/.test(password)) score++;
+        const levels = [
+            { width: '0%', color: 'transparent', text: '' }, { width: '25%', color: '#ef4444', text: 'Weak' },
+            { width: '50%', color: '#f59e0b', text: 'Fair' }, { width: '75%', color: '#06b6d4', text: 'Good' },
+            { width: '100%', color: '#10b981', text: 'Strong' }
+        ];
+        const level = levels[score]; fill.style.width = level.width; fill.style.background = level.color;
+        text.style.color = level.color; text.textContent = level.text;
+    }
+
+    function showToast(msg, type = 'success') {
+        const c = document.getElementById('toastContainer'), t = document.createElement('div');
+        t.className = `toast ${type}`;
+        t.innerHTML = `<i class="${type === 'success' ? 'ri-check-line' : 'ri-error-warning-line'}"></i> ${msg}`;
+        c.appendChild(t); setTimeout(() => t.remove(), 3000);
+    }
+
+    const otpInputs = document.querySelectorAll('#otpInputs input');
+    otpInputs.forEach((input, i) => {
+        input.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '');
+            if (e.target.value && i < otpInputs.length - 1) otpInputs[i + 1].focus();
+        });
+        input.addEventListener('keydown', (e) => { if (e.key === 'Backspace' && !e.target.value && i > 0) otpInputs[i - 1].focus(); });
+        input.addEventListener('paste', (e) => {
+            e.preventDefault(); const data = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+            data.split('').forEach((c, j) => { if (otpInputs[j]) otpInputs[j].value = c; });
+            if (otpInputs[data.length - 1]) otpInputs[data.length - 1].focus();
+        });
+    });
+
+    async function apiCall(endpoint, data) {
+        try {
+            const res = await fetch(`${API_BASE}${endpoint}`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+            });
+            return await res.json();
+        } catch (err) {
+            console.warn('Backend not available, using demo mode');
+            return handleDemoMode(endpoint, data);
+        }
+    }
+
+    function handleDemoMode(endpoint, data) {
+        const demoUsers = JSON.parse(localStorage.getItem('expenseIQ_demoUsers') || '{}');
+        if (endpoint === '/register') {
+            if (demoUsers[data.email]) return { success: false, message: 'User already exists' };
+            demoUsers[data.email] = { ...data, verified: false, otp: '123456' };
+            localStorage.setItem('expenseIQ_demoUsers', JSON.stringify(demoUsers));
+            return { success: true, message: 'OTP sent! (Demo: use 123456)' };
+        }
+        if (endpoint === '/verify-otp') {
+            if (data.otp === '123456' || (demoUsers[data.email] && demoUsers[data.email].otp === data.otp)) {
+                if (demoUsers[data.email]) demoUsers[data.email].verified = true;
+                localStorage.setItem('expenseIQ_demoUsers', JSON.stringify(demoUsers));
+                return { success: true, message: 'Verified!', token: 'demo_token_' + Date.now(), user: { name: demoUsers[data.email]?.name || 'User', email: data.email } };
+            }
+            return { success: false, message: 'Invalid OTP. Demo code: 123456' };
+        }
+        if (endpoint === '/login') {
+            const user = demoUsers[data.email];
+            if (!user) return { success: false, message: 'User not found. Please register first.' };
+            if (user.password !== data.password) return { success: false, message: 'Incorrect password' };
+            if (!user.verified) {
+                demoUsers[data.email].otp = '123456';
+                localStorage.setItem('expenseIQ_demoUsers', JSON.stringify(demoUsers));
+                return { success: false, needsVerification: true, message: 'Please verify your account first' };
+            }
+            return { success: true, token: 'demo_token_' + Date.now(), user: { name: user.name, email: data.email } };
+        }
+        if (endpoint === '/resend-otp') return { success: true, message: 'OTP resent! (Demo: use 123456)' };
+        return { success: false, message: 'Unknown action' };
+    }
+
+    async function handleRegister(e) {
+        e.preventDefault();
+        const name = document.getElementById('regName').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
+        const password = document.getElementById('regPassword').value;
+        const confirm = document.getElementById('regConfirm').value;
+
+        if (!name) return showToast('Please enter your name', 'error');
+        if (!email) return showToast(`Please enter your email`, 'error');
+        if (password.length < 8) return showToast('Password must be at least 8 characters', 'error');
+        if (password !== confirm) return showToast('Passwords do not match', 'error');
+
+        const btn = document.getElementById('registerBtn'), spinner = document.getElementById('registerSpinner');
+        btn.disabled = true; spinner.style.display = 'inline-block';
+
+        const data = { name, password, email };
+        const res = await apiCall('/register', data);
+        btn.disabled = false; spinner.style.display = 'none';
+
+        if (res.success) {
+            pendingUserData = data; showOTPSection(email); showToast(res.message || 'Email sent! Check your inbox.');
+        } else showToast(res.message || 'Registration failed', 'error');
+    }
+
+    async function handleLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        if (!email) return showToast(`Please enter your email`, 'error');
+        if (!password) return showToast('Please enter your password', 'error');
+
+        const btn = document.getElementById('loginBtn'), spinner = document.getElementById('loginSpinner');
+        btn.disabled = true; spinner.style.display = 'inline-block';
+
+        const data = { password, email };
+        const res = await apiCall('/login', data);
+        btn.disabled = false; spinner.style.display = 'none';
+
+        if (res.success) {
+            localStorage.setItem('expenseIQ_token', res.token);
+            localStorage.setItem('expenseIQ_userName', res.user.name);
+            localStorage.setItem('expenseIQ_userEmail', res.user.email || '');
+            showToast('Login successful! Redirecting...');
+            setTimeout(() => window.location.href = 'dashboard.html', 1000);
+        } else if (res.needsVerification) {
+            pendingUserData = data; showOTPSection(email); showToast('Please verify your account', 'error');
+        } else { showToast(res.message || 'Login failed', 'error'); }
+    }
+
+    function showOTPSection(destination) {
+        document.getElementById('authSection').style.display = 'none'; document.getElementById('otpSection').classList.add('active');
+        document.getElementById('otpSection').style.display = 'block'; document.getElementById('otpDestination').textContent = destination;
+        otpInputs.forEach(inp => inp.value = ''); otpInputs[0].focus(); startResendTimer();
+    }
+
+    function backToAuth() {
+        document.getElementById('otpSection').style.display = 'none'; document.getElementById('otpSection').classList.remove('active'); document.getElementById('authSection').style.display = 'block';
+    }
+
+    async function verifyOTP() {
+        const otp = Array.from(otpInputs).map(i => i.value).join('');
+        if (otp.length !== 6) return showToast('Please enter the complete 6-digit OTP', 'error');
+
+        const btn = document.getElementById('verifyBtn'), spinner = document.getElementById('verifySpinner');
+        btn.disabled = true; spinner.style.display = 'inline-block';
+
+        const data = { otp, email: pendingUserData.email };
+        const res = await apiCall('/verify-otp', data);
+        btn.disabled = false; spinner.style.display = 'none';
+
+        if (res.success) {
+            localStorage.setItem('expenseIQ_token', res.token);
+            localStorage.setItem('expenseIQ_userName', res.user?.name || pendingUserData.name || 'User');
+            localStorage.setItem('expenseIQ_userEmail', res.user?.email || pendingUserData.email || '');
+            showToast('Email verified! Redirecting...');
+            setTimeout(() => window.location.href = 'dashboard.html', 1000);
+        } else { showToast(res.message || 'Invalid OTP', 'error'); }
+    }
+
+    function startResendTimer() {
+        let seconds = 30; const link = document.getElementById('resendLink'), timerText = document.getElementById('timerText'); link.classList.add('disabled');
+        if (resendTimer) clearInterval(resendTimer);
+        resendTimer = setInterval(() => {
+            seconds--; timerText.textContent = ` (${seconds}s)`;
+            if (seconds <= 0) { clearInterval(resendTimer); link.classList.remove('disabled'); timerText.textContent = ''; }
+        }, 1000);
+    }
+
+    async function resendOTP() {
+        const data = { email: pendingUserData.email };
+        const res = await apiCall('/resend-otp', data); showToast(res.message || 'Email resent!'); startResendTimer();
+    }
+</script>
+</body>
+</html>
